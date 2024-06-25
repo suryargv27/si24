@@ -1,0 +1,403 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Static Obfuscation Script</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+        <!-- MathJax -->
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="obsfuscator.html" class="active"><strong aria-hidden="true">1.</strong> Static Obfuscation Script</a></li><li class="chapter-item expanded "><a href="payload.html"><strong aria-hidden="true">2.</strong> Creating Custom Reverse Shell</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title"></h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id=""><a class="header" href="#"></a></h1>
+<h2 id="c-code-obfuscator-documentation"><a class="header" href="#c-code-obfuscator-documentation">C++ Code Obfuscator Documentation</a></h2>
+<h3 id="overview"><a class="header" href="#overview">Overview</a></h3>
+<p>The <strong>C++ Code Obfuscator</strong> is a Python script designed to encrypt strings within a C++ source code file using various encryption schemes. It reads a C++ file, identifies strings, encrypts them based on a chosen encryption scheme, and writes the processed code to a new file.</p>
+<h3 id="encryption-schemes"><a class="header" href="#encryption-schemes">Encryption Schemes</a></h3>
+<p>The script supports the following encryption schemes:</p>
+<ol>
+<li><strong>XOR Encryption ('x')</strong></li>
+<li><strong>Substitution Encryption ('s')</strong></li>
+<li><strong>Caesar Encryption ('c')</strong></li>
+<li><strong>Vigenère Encryption ('v')</strong></li>
+<li><strong>Affine Encryption ('a')</strong></li>
+</ol>
+<p>Each scheme encrypts strings differently, providing varying levels of security and complexity.</p>
+<h3 id="modules-used"><a class="header" href="#modules-used">Modules Used</a></h3>
+<ul>
+<li><strong>re</strong>: For regular expression operations, used to identify strings within the C++ code.</li>
+<li><strong>random</strong>: For generating random keys required by various encryption schemes.</li>
+<li><strong>argparse</strong>: For parsing command-line arguments to specify input and output files, and the encryption scheme.</li>
+</ul>
+<h2 id="detailed-explanation-of-encryption-schemes"><a class="header" href="#detailed-explanation-of-encryption-schemes">Detailed Explanation of Encryption Schemes</a></h2>
+<h3 id="1-xor-encryption-x"><a class="header" href="#1-xor-encryption-x">1. XOR Encryption ('x')</a></h3>
+<p><strong>XOR encryption</strong> is a simple and effective symmetric encryption technique. It works by applying the XOR (exclusive OR) operation between each byte of the plaintext and a corresponding byte of the key. XORing the ciphertext with the same key decrypts it, as XORing twice with the same value cancels it out.</p>
+<ul>
+<li>
+<p><strong>Key Generation</strong>: Generates a random 16-byte key using the function (<code>generate_xor_key()</code>).</p>
+</li>
+<li>
+<p><strong>Encryption Formula</strong>:
+\[ \text{encrypted_byte} = \text{plaintext_byte} \oplus \text{key_byte} \]
+Where \( \oplus \) denotes the XOR operation.</p>
+</li>
+<li>
+<p><strong>Example</strong>:
+Suppose we have a plaintext byte \( P = 65 \) (ASCII 'A') and a key byte \( K = 143 \). The encrypted byte \( E \) would be:
+\[ E = 65 \oplus 143 = 206 \]
+Decryption would then be \( 206 \oplus 143 = 65 \), recovering the original plaintext byte.</p>
+</li>
+</ul>
+<h3 id="2-substitution-encryption-s"><a class="header" href="#2-substitution-encryption-s">2. Substitution Encryption ('s')</a></h3>
+<p><strong>Substitution encryption</strong> replaces each character in the plaintext with a corresponding character from a randomly shuffled mapping (key). Decryption involves reversing this mapping.</p>
+<ul>
+<li>
+<p><strong>Key Generation</strong>: Generates a random permutation of ASCII characters i.e random permutation of the 128 characters using the function (<code>generate_map_key()</code>).</p>
+</li>
+<li>
+<p><strong>Encryption Formula</strong>:
+\[ \text{encrypted_char} = \text{key}[\text{plaintext_char}] \]
+Where <code>key</code> is the randomly shuffled mapping.</p>
+</li>
+<li>
+<p><strong>Example</strong>:
+Let's say our key maps 'A' to 'Q', 'B' to 'Z', etc. If the plaintext is "HELLO", it might encrypt to "PATTY" depending on the key.</p>
+</li>
+</ul>
+<h3 id="3-caesar-encryption-c"><a class="header" href="#3-caesar-encryption-c">3. Caesar Encryption ('c')</a></h3>
+<p><strong>Caesar encryption</strong> shifts each character in the plaintext by a fixed number of positions down the ASCII table. Decryption involves shifting characters in the opposite direction.</p>
+<ul>
+<li>
+<p><strong>Key Generation</strong>: Generates a random shift value usin the function (<code>generate_caesar_key()</code>).</p>
+</li>
+<li>
+<p><strong>Encryption Formula</strong>:
+\[ \text{encrypted_char} = (\text{plaintext_char} + \text{shift}) \mod 128 \]</p>
+</li>
+<li>
+<p><strong>Example</strong>:
+With a shift of 3, 'A' (ASCII 65) becomes 'D' (ASCII 68). Decryption shifts in the opposite direction, so 'D' becomes 'A'.</p>
+</li>
+</ul>
+<h3 id="4-vigenère-encryption-v"><a class="header" href="#4-vigenère-encryption-v">4. Vigenère Encryption ('v')</a></h3>
+<p><strong>Vigenère encryption</strong> uses a keyword to repeatedly encrypt the plaintext using different Caesar ciphers based on the letters of the keyword. Decryption requires the same keyword to reverse the process.</p>
+<ul>
+<li>
+<p><strong>Key Generation</strong>: Generates a random 16-byte key using the function (<code>generate_vigenere_key()</code>).</p>
+</li>
+<li>
+<p><strong>Encryption Formula</strong>:
+\[ \text{encrypted_char} = (\text{plaintext_char} + \text{key}[i \% \text{key_len}]) \mod 128 \]
+Where <code>key_len</code> is the length of the key.</p>
+</li>
+<li>
+<p><strong>Example</strong>:
+If the plaintext is "HELLO" and the key is "KEY", the encryption would be done by shifting each letter according to the key ('K', 'E', 'Y', 'K', 'E' cyclically).</p>
+</li>
+</ul>
+<h3 id="5-affine-encryption-a"><a class="header" href="#5-affine-encryption-a">5. Affine Encryption ('a')</a></h3>
+<p><strong>Affine encryption</strong> combines multiplication and addition modulo 128 to transform each character in the plaintext. Decryption uses the modular inverse of the multiplier to reverse the transformation.</p>
+<ul>
+<li>
+<p><strong>Key Generation</strong>: Generates random keys (<code>a</code> and <code>b</code>) ensuring <code>a</code> is coprime with 128 using the function (<code>generate_affine_keys()</code>).</p>
+</li>
+<li>
+<p><strong>Encryption Formula</strong>:
+\[ \text{encrypted_char} = (a \times \text{plaintext_char} + b) \mod 128 \]
+Where \( a \) and \( b \) are keys generated by <code>generate_affine_keys()</code>.</p>
+</li>
+<li>
+<p><strong>Example</strong>:
+Suppose \( a = 3 \), \( b = 5 \). Encrypting 'A' (ASCII 65):
+\[ E = (3 \times 65 + 5) \mod 128 = 200 \]
+'E' (ASCII 69). Decryption uses the modular inverse of \( a \) to recover the original plaintext.</p>
+</li>
+</ul>
+<hr />
+<p>These detailed explanations provide insights into how each encryption scheme functions, the mathematical operations involved, and practical examples illustrating their application. Understanding these mechanisms helps in implementing and customizing encryption methods based on specific security requirements.</p>
+<h3 id="utility-functions"><a class="header" href="#utility-functions">Utility Functions</a></h3>
+<ul>
+<li><strong>gcd(a, b)</strong>: Computes the greatest common divisor, used in Affine encryption to find coprime numbers.</li>
+<li><strong>coprime_numbers(limit)</strong>: Finds coprime numbers up to a specified limit, used in Affine encryption key generation.</li>
+<li><strong>to_int_array(s)</strong>, <strong>to_hex_array(s)</strong>: Convert strings to integer arrays and hexadecimal arrays respectively.</li>
+</ul>
+<h3 id="file-handling-functions"><a class="header" href="#file-handling-functions">File Handling Functions</a></h3>
+<ul>
+<li><strong>write_cpp_code_to_file(cpp_code, filename)</strong>: Writes processed C++ code to a file.</li>
+<li><strong>process_cpp_code(cpp_code, scheme)</strong>: Processes C++ code to encrypt strings based on the chosen scheme, including string identification, encryption, and decryption function insertion.</li>
+</ul>
+<h3 id="main-functionality"><a class="header" href="#main-functionality">Main Functionality</a></h3>
+<ul>
+<li><strong>main()</strong>: Main function to parse command-line arguments, read input C++ file, process the code using the chosen encryption scheme, and write the output to a specified file.</li>
+</ul>
+<h3 id="usage"><a class="header" href="#usage">Usage</a></h3>
+<p>To use the script, run it from the command line with the following arguments:</p>
+<pre><code class="language-bash">python script_name.py -i input_file.cpp -o output_file.cpp --scheme &lt;scheme&gt;
+</code></pre>
+<p>Replace <code>&lt;scheme&gt;</code> with one of 'x', 's', 'c', 'v', or 'a' to choose the encryption scheme.</p>
+<h3 id="example"><a class="header" href="#example">Example</a></h3>
+<p>This souce code is converted</p>
+<pre><code class="language-cpp">#include &lt;windows.h&gt;
+
+int main()
+{
+    WinExec("calc.exe", SW_SHOWNORMAL);
+    return 0;
+}
+</code></pre>
+<p>In the following way</p>
+<pre><code class="language-cpp">#include &lt;windows.h&gt;
+
+
+void decrypt(char* data, int len, char* key, int keyLen) {
+    for (int i = 0; i &lt; len; ++i) {
+        data[i] ^= key[i % keyLen];
+    }
+}
+int main()
+{
+char key[] = {0x4e, 0x6d, 0x9, 0x3c, 0x1, 0x1, 0x17, 0x31, 0x56, 0x11, 0x1a, 0x69, 0x72, 0x4e, 0x5b, 0x3e, 0x00};
+char str_0[] = {0x2d, 0xc, 0x65, 0x5f, 0x2f, 0x64, 0x6f, 0x54, 0x00};
+int keyLen = sizeof(key) - 1;
+decrypt(str_0, sizeof(str_0) - 1, key, keyLen);
+    WinExec(str_0, SW_SHOWNORMAL);
+    return 0;
+}
+</code></pre>
+<h3 id="notes"><a class="header" href="#notes">Notes</a></h3>
+<ul>
+<li>Ensure Python and required libraries are installed.</li>
+<li>The script modifies the original C++ code, replacing strings with encrypted versions and adding decryption functions.</li>
+<li>Encryption keys are generated randomly and may not be stored securely within the generated C++ code.</li>
+<li>The script assumes ASCII character set (128 characters).</li>
+</ul>
+<hr />
+<p>This documentation provides a comprehensive overview of each encryption scheme supported by the script, explaining their mechanisms, key generation methods, and encryption functions. Adjustments or enhancements can be made based on specific requirements or additional security considerations.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+
+                            <a rel="next prefetch" href="payload.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+
+                    <a rel="next prefetch" href="payload.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>
